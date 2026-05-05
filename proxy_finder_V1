@@ -24,6 +24,13 @@ def install(pkg):
     subprocess.check_call([sys.executable, "-m", "pip", "install", pkg, "--break-system-packages", "-q"])
 
 try:
+    from tqdm import tqdm
+except ImportError:
+    print("[*] Installing tqdm for progress visualization...")
+    install("tqdm")
+    from tqdm import tqdm
+
+try:
     import requests
 except ImportError:
     print("[*] Installing requests...")
@@ -371,14 +378,15 @@ def main():
     # Gevent concurrency — much faster than ThreadPoolExecutor
     jobs = [gevent.spawn(test_proxy, proto, proxy, args.timeout, real_ip, args.geo) for proto, proxy in candidates]
     
-    for job in gevent.iwait(jobs):
-        done += 1
-        result = job.value
-        if result:
-            results.append(result)
-            print_result(result)
-        if done % 20 == 0:
-            print(f"  ... {done}/{len(candidates)} tested | {len(results)} working")
+    with tqdm(total=len(jobs), desc="[*] Testing Proxies", unit="proxy", colour="green") as pbar:
+        for job in gevent.iwait(jobs):
+            result = job.value
+            if result:
+                results.append(result)
+                status = "[SAFE]" if result["safe"] else "[RISK]"
+                pbar.write(f"  {status} {result['protocol']:<7} {result['proxy']}")
+       
+            pbar.update(1)
  
     results.sort(key=lambda x: (not x["safe"], x["latency_ms"]))
  
