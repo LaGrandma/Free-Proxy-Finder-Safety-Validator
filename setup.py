@@ -12,7 +12,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "proxyfinder=proxy_finder_V2:main",
+            "proxyfinder=proxy_finder_V1:main",
         ],
     },
 )
