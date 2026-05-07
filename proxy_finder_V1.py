@@ -17,6 +17,10 @@ import re
 import subprocess
 import sys
 import time
+import os
+import shutil
+import time
+
  
 # ── auto-install dependencies ─────────────────────────────────────────────────
  
@@ -354,6 +358,8 @@ def main():
     parser.add_argument("--output", default=None, help="Save working proxies to JSON file")
     parser.add_argument("--safe-only", action="store_true", help="Only output proxies passing all safety checks")
     parser.add_argument("--geo", action="store_true", help="Add country info (slower, rate limited)")
+    parser.add_argument("--add", action= "store_true" , help="Add custom proxy list to the candidates")
+    parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompts (auto-yes)")
     args = parser.parse_args()
  
     print("[*] Detecting your real IP...")
@@ -415,17 +421,30 @@ def main():
         with open(args.output, "w") as f:
             json.dump(display, f, indent=2)
         print(f"\n[*] Saved {len(display)} proxies to {args.output}")
- 
+
+    if args.add_to_proxychains:
+        if not display:
+            print("[!] No proxies to add to proxychains")
+        else:
+            try:
+                if args.yes:
+                    add_to_proxychains(display)
+                else:
+                    confirm = input(f"\n[?] Add {len(display)} safe proxies to /etc/proxychains4.conf? [y/N]: ")
+                    if confirm.lower() in ['y', 'yes']:
+                        add_to_proxychains(display)
+                    else:
+                        print("[*] Skipped adding to proxychains")
+            except KeyboardInterrupt:
+                print("\n[*] Cancelled")
+    
     if not results:
         print("[!] No working proxies found. Try --count 300 or --timeout 12.")
         sys.exit(1)
 
     def add_to_proxychains(proxies):
         """Append safe proxies to the [ProxyList] section of proxychains4.conf."""
-        import os
-        import shutil
-        import time
-
+    
         conf_paths = [
         "/etc/proxychains4.conf",
         "/etc/proxychains.conf",
