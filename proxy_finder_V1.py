@@ -358,8 +358,10 @@ def main():
     parser.add_argument("--output", default=None, help="Save working proxies to JSON file")
     parser.add_argument("--safe-only", action="store_true", help="Only output proxies passing all safety checks")
     parser.add_argument("--geo", action="store_true", help="Add country info (slower, rate limited)")
-    parser.add_argument("--add", action= "store_true" , help="Add custom proxy list to the candidates")
-    parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompts (auto-yes)")
+    parser.add_argument("--add-to-proxychains", action="store_true", 
+                       help="Add safe proxies to /etc/proxychains4.conf")
+    parser.add_argument("--yes", "-y", action="store_true", 
+                       help="Skip confirmation prompts")
     args = parser.parse_args()
  
     print("[*] Detecting your real IP...")
